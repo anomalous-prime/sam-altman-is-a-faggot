@@ -1,24 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Inter:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Inter:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --nf-gray-900: #0D0F16;
+  --nf-gray-900: #0d0f16;
   --nf-gray-800: #151823;
-  --nf-gray-700: #1F2330;
-  --nf-gray-600: #2A3042;
-  --nf-gray-400: #6B7287;
-  --nf-gray-200: #B7BBD0;
-  --nf-gray-100: #E7E9F6;
-  --nf-primary-500: #7F5CFF;
-  --nf-primary-300: #B39AFE;
-  --nf-primary-700: #5941C6;
-  --nf-accent-cyan: #22D6F3;
-  --nf-accent-pink: #FF4F9C;
-  --nf-success: #24D18B;
-  --nf-warning: #FFC76B;
-  --nf-error: #FF517B;
+  --nf-gray-700: #1f2330;
+  --nf-gray-600: #2a3042;
+  --nf-gray-400: #6b7287;
+  --nf-gray-200: #b7bbd0;
+  --nf-gray-100: #e7e9f6;
+  --nf-primary-500: #7f5cff;
+  --nf-primary-300: #b39afe;
+  --nf-primary-700: #5941c6;
+  --nf-accent-cyan: #22d6f3;
+  --nf-accent-pink: #ff4f9c;
+  --nf-success: #24d18b;
+  --nf-warning: #ffc76b;
+  --nf-error: #ff517b;
   --nf-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --nf-dur-fast: 120ms;
   --nf-dur-medium: 240ms;
@@ -43,25 +43,29 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--nf-gray-900);
   color: var(--nf-gray-200);
   min-height: 100vh;
 }
 
 .font-display {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .nf-card {
   background: var(--nf-gray-800);
   border: 1px solid var(--nf-gray-700);
-  box-shadow: 0 2px 6px -1px rgba(0,0,0,0.5), 0 1px 1px rgba(0,0,0,0.2);
+  box-shadow:
+    0 2px 6px -1px rgba(0, 0, 0, 0.5),
+    0 1px 1px rgba(0, 0, 0, 0.2);
   transition: all var(--nf-dur-medium) var(--nf-ease-out);
 }
 
 .nf-card:hover {
-  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.75), 0 2px 6px -2px rgba(0,0,0,0.3);
+  box-shadow:
+    0 8px 24px -4px rgba(0, 0, 0, 0.75),
+    0 2px 6px -2px rgba(0, 0, 0, 0.3);
 }
 
 .nf-btn-primary {
@@ -97,24 +101,24 @@ body {
   cursor: pointer;
 }
 
-.tag-cluster { 
-  background: var(--nf-primary-500); 
-  color: white; 
+.tag-cluster {
+  background: var(--nf-primary-500);
+  color: white;
 }
 
-.tag-area { 
-  background: var(--nf-accent-cyan); 
-  color: var(--nf-gray-900); 
+.tag-area {
+  background: var(--nf-accent-cyan);
+  color: var(--nf-gray-900);
 }
 
-.tag-status-active { 
-  background: var(--nf-success); 
-  color: var(--nf-gray-900); 
+.tag-status-active {
+  background: var(--nf-success);
+  color: var(--nf-gray-900);
 }
 
-.tag-status-inactive { 
-  background: var(--nf-gray-600); 
-  color: var(--nf-gray-200); 
+.tag-status-inactive {
+  background: var(--nf-gray-600);
+  color: var(--nf-gray-200);
 }
 
 .tree-node {
@@ -144,11 +148,12 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
-    box-shadow: 0 0 0 0 rgba(34, 214, 243, 0); 
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 214, 243, 0);
   }
-  50% { 
-    box-shadow: 0 0 8px 6px rgba(34, 214, 243, 0.3); 
+  50% {
+    box-shadow: 0 0 8px 6px rgba(34, 214, 243, 0.3);
   }
 }
 

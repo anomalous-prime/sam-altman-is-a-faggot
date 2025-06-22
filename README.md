@@ -5,6 +5,7 @@ A Next.js implementation of an interactive tree-structured data management dashb
 ## Features
 
 ### 🌟 Core Functionality
+
 - **Interactive Tree Visualization**: D3.js-powered hierarchical data visualization
 - **Dynamic Filtering**: Filter by tree, status, type, and search terms
 - **Tag Cloud**: Interactive tag cloud with click-to-filter functionality
@@ -12,6 +13,7 @@ A Next.js implementation of an interactive tree-structured data management dashb
 - **Statistics Dashboard**: Real-time stats that update based on active filters
 
 ### 🎨 UI/UX Features
+
 - **Dark Theme**: Custom NightForge color scheme with CSS variables
 - **Responsive Design**: Mobile-friendly layout with Tailwind CSS
 - **Interactive Elements**: Hover effects, transitions, and animations
@@ -19,6 +21,7 @@ A Next.js implementation of an interactive tree-structured data management dashb
 - **Custom Fonts**: Inter and Space Grotesk for modern typography
 
 ### 🔧 Technical Features
+
 - **Next.js 15**: Latest Next.js with App Router
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Utility-first styling
@@ -43,11 +46,13 @@ src/
 ## Getting Started
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Run the development server**:
+
    ```bash
    npm run dev
    ```
@@ -66,6 +71,7 @@ The application uses a hierarchical data structure:
 ## Component Architecture
 
 ### NightForgeDemo Component
+
 The main component uses React hooks for state management and D3.js for visualization:
 
 - **State Management**: Uses `useState` for filters and D3 readiness
@@ -74,6 +80,7 @@ The main component uses React hooks for state management and D3.js for visualiza
 - **Dynamic Rendering**: Real-time updates based on filter changes
 
 ### Key Functions
+
 - `renderTreeVisualization()`: Creates D3.js tree diagram
 - `renderTagCloud()`: Generates interactive tag cloud
 - `renderDataInspector()`: Displays detailed data view
@@ -83,13 +90,16 @@ The main component uses React hooks for state management and D3.js for visualiza
 ## Styling
 
 ### CSS Variables
+
 Custom NightForge color scheme defined in `globals.css`:
+
 - Gray palette: `--nf-gray-900` to `--nf-gray-100`
 - Primary colors: `--nf-primary-500`, `--nf-primary-300`
 - Accent colors: `--nf-accent-cyan`, `--nf-accent-pink`
 - Status colors: `--nf-success`, `--nf-warning`, `--nf-error`
 
 ### Component Classes
+
 - `.nf-card`: Card component with hover effects
 - `.nf-btn-primary` / `.nf-btn-secondary`: Button styles
 - `.tag-badge`: Tag styling with color variants
@@ -98,12 +108,14 @@ Custom NightForge color scheme defined in `globals.css`:
 ## Features in Detail
 
 ### Interactive Tree Visualization
+
 - Node types: Trees (large circles), Clusters (medium), Areas (small)
 - Color coding: Purple (trees), Cyan (clusters), Green (areas)
 - Status indicators: Green/red dots for active/inactive status
 - Click-to-expand: Modal details for each node
 
 ### Advanced Filtering
+
 - **Tree Filter**: Show data for specific trees
 - **Status Filter**: Active/inactive toggle
 - **Type Filter**: Focus on clusters or areas
@@ -111,12 +123,14 @@ Custom NightForge color scheme defined in `globals.css`:
 - **Reset**: Clear all filters
 
 ### Tag Cloud
+
 - Frequency-based sizing and sorting
 - Color-coded by type (cluster/area/tag)
 - Click-to-filter functionality
 - Real-time updates with filtering
 
 ### Statistics Dashboard
+
 - Live counters that update with filters
 - Visual indicators with custom colors
 - Responsive grid layout
@@ -130,13 +144,17 @@ Custom NightForge color scheme defined in `globals.css`:
 ## Customization
 
 ### Adding New Data
+
 Update `src/lib/seedData.ts` with your tree structure following the existing format.
 
 ### Styling Changes
+
 Modify CSS variables in `src/app/globals.css` to match your brand colors.
 
 ### Extending Functionality
+
 The modular architecture makes it easy to add new features:
+
 - Add new filter types in the `Filters` interface
 - Extend the data model in `types.ts`
 - Add new visualization types in the main component
@@ -158,6 +176,7 @@ npm start
 ```
 
 The application is optimized for production with:
+
 - Static asset optimization
 - Font optimization with Google Fonts
 - CSS minification

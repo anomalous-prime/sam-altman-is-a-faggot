@@ -1,8 +1,8 @@
 export interface TreeNode {
   name: string;
-  type: 'root' | 'tree' | 'cluster' | 'area';
+  type: "root" | "tree" | "cluster" | "area";
   id?: string;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   children?: TreeNode[];
   tags?: string[];
 }
@@ -10,7 +10,7 @@ export interface TreeNode {
 export interface Tree {
   id: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   created_at: string;
   clusters: Cluster[];
 }
@@ -18,7 +18,7 @@ export interface Tree {
 export interface Cluster {
   uid: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   parent_id: string | null;
   tree_id: string;
   children: string[];
@@ -28,7 +28,7 @@ export interface Cluster {
 export interface Area {
   uid: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   cluster_uid: string;
   tags: string[];
 }
@@ -36,7 +36,7 @@ export interface Area {
 export interface Tag {
   slug: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   tree_id: string;
 }
 
@@ -50,4 +50,4 @@ export interface Filters {
   status: string;
   type: string;
   search: string;
-} 
+}

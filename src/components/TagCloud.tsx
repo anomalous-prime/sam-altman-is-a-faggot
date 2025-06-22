@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { FilteredData, Filters } from '@/lib/types';
+import { useMemo } from "react";
+import { FilteredData, Filters } from "@/lib/types";
 
 interface Props {
   data: FilteredData;
@@ -32,7 +32,8 @@ export default function TagCloud({ data, filters, setFilters }: Props) {
     setFilters({ ...filters, search: tag });
   };
 
-  const isCluster = (tag: string) => data.trees.some((t) => t.clusters.some((c) => c.name === tag));
+  const isCluster = (tag: string) =>
+    data.trees.some((t) => t.clusters.some((c) => c.name === tag));
   const isArea = (tag: string) => data.areas.some((a) => a.name === tag);
 
   return (
@@ -42,7 +43,7 @@ export default function TagCloud({ data, filters, setFilters }: Props) {
         {tagCounts.map(([tag, count]) => (
           <span
             key={tag}
-            className={`tag-badge ${isCluster(tag) ? 'tag-cluster' : isArea(tag) ? 'tag-area' : 'tag-status-active'}`}
+            className={`tag-badge ${isCluster(tag) ? "tag-cluster" : isArea(tag) ? "tag-area" : "tag-status-active"}`}
             onClick={() => handleClick(tag)}
           >
             {tag} ({count})

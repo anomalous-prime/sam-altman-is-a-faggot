@@ -98,6 +98,7 @@ export default function ControlsPanel({ filters, setFilters }: Props) {
           type="text"
           id="searchInput"
           placeholder="Search tags, clusters, areas..."
+          aria-label="Search"
           className="px-4 py-2 rounded-lg border flex-1"
           style={{
             background: "var(--nf-gray-700)",

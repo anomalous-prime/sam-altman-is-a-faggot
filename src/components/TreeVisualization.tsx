@@ -66,10 +66,15 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
     }
 
     function showNodeDetails(node: any) {
+      const previouslyFocused = document.activeElement as HTMLElement | null;
+
       const modal = document.createElement("div");
       modal.className =
         "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
       modal.style.backdropFilter = "blur(8px)";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.tabIndex = -1;
 
       const content = document.createElement("div");
       content.className =
@@ -137,12 +142,41 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
           </div>`;
       }
 
-      content.innerHTML = `${details}<div class="mt-6 flex justify-end"><button class="nf-btn-primary px-4 py-2 rounded-lg" onclick="this.closest('.fixed').remove()">Close</button></div>`;
+      content.innerHTML = details;
+
+      const actions = document.createElement("div");
+      actions.className = "mt-6 flex justify-end";
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "nf-btn-primary px-4 py-2 rounded-lg";
+      closeBtn.textContent = "Close";
+      closeBtn.setAttribute("aria-label", "Close dialog");
+      actions.appendChild(closeBtn);
+      content.appendChild(actions);
+
       modal.appendChild(content);
       document.body.appendChild(modal);
+
+      const closeModal = () => {
+        modal.remove();
+        document.removeEventListener("keydown", handleKey);
+        if (previouslyFocused) previouslyFocused.focus();
+      };
+
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeModal();
+        }
+      };
+
+      document.addEventListener("keydown", handleKey);
+      closeBtn.addEventListener("click", closeModal);
+
       modal.addEventListener("click", (e) => {
-        if (e.target === modal) modal.remove();
+        if (e.target === modal) closeModal();
       });
+
+      setTimeout(() => closeBtn.focus(), 0);
     }
 
     const container = document.getElementById("treeViz") as HTMLElement;

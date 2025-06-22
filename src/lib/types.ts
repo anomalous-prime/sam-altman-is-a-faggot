@@ -1,8 +1,20 @@
+export enum Status {
+  Active = 'active',
+  Inactive = 'inactive',
+}
+
+export enum NodeType {
+  Root = 'root',
+  Tree = 'tree',
+  Cluster = 'cluster',
+  Area = 'area',
+}
+
 export interface TreeNode {
   name: string;
-  type: "root" | "tree" | "cluster" | "area";
+  type: NodeType;
   id?: string;
-  status?: "active" | "inactive";
+  status?: Status;
   children?: TreeNode[];
   tags?: string[];
 }
@@ -10,7 +22,7 @@ export interface TreeNode {
 export interface Tree {
   id: string;
   name: string;
-  status: "active" | "inactive";
+  status: Status;
   created_at: string;
   clusters: Cluster[];
 }
@@ -18,7 +30,7 @@ export interface Tree {
 export interface Cluster {
   uid: string;
   name: string;
-  status: "active" | "inactive";
+  status: Status;
   parent_id: string | null;
   tree_id: string;
   children: string[];
@@ -28,7 +40,7 @@ export interface Cluster {
 export interface Area {
   uid: string;
   name: string;
-  status: "active" | "inactive";
+  status: Status;
   cluster_uid: string;
   tags: string[];
 }
@@ -36,7 +48,7 @@ export interface Area {
 export interface Tag {
   slug: string;
   name: string;
-  status: "active" | "inactive";
+  status: Status;
   tree_id: string;
 }
 

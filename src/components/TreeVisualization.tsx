@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { FilteredData, TreeNode } from '@/lib/types';
+import type { HierarchyPointNode } from 'd3';
+import { FilteredData, TreeNode, Cluster, Area, Status, NodeType, Tree } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 
 interface Props {
@@ -10,26 +11,29 @@ interface Props {
 export default function TreeVisualization({ data, isD3Ready }: Props) {
   useEffect(() => {
     if (!isD3Ready) return;
-    const d3 = (window as any).d3;
+    const d3 = (window as unknown as { d3: typeof import('d3') }).d3;
     if (!d3) return;
 
-    function getAllClusters() {
-      return seedData.trees.reduce((acc: any[], tree: any) => acc.concat(tree.clusters), [] as any[]);
+    function getAllClusters(): Cluster[] {
+      return seedData.trees.reduce(
+        (acc: Cluster[], tree: Tree) => acc.concat(tree.clusters),
+        [] as Cluster[],
+      );
     }
 
-    function createClusterNode(cluster: any, allClusters: any[], areas: any[]): TreeNode {
+    function createClusterNode(cluster: Cluster, allClusters: Cluster[], areas: Area[]): TreeNode {
       const childClusters = allClusters.filter((c) => c.parent_id === cluster.uid);
       const clusterAreas = areas.filter((a) => a.cluster_uid === cluster.uid);
       return {
         name: cluster.name,
-        type: 'cluster',
+        type: NodeType.Cluster,
         id: cluster.uid,
         status: cluster.status,
         children: [
           ...childClusters.map((child) => createClusterNode(child, allClusters, areas)),
           ...clusterAreas.map((area) => ({
             name: area.name,
-            type: 'area',
+            type: NodeType.Area,
             id: area.uid,
             status: area.status,
             tags: area.tags,
@@ -38,21 +42,23 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
       } as TreeNode;
     }
 
-    function createHierarchicalData() {
+    function createHierarchicalData(): TreeNode {
       return {
         name: 'API Root',
-        type: 'root',
-        children: data.trees.map((tree: any) => ({
+        type: NodeType.Root,
+        children: data.trees.map((tree: Tree) => ({
           name: tree.name,
-          type: 'tree',
+          type: NodeType.Tree,
           id: tree.id,
           status: tree.status,
-          children: tree.clusters.filter((c: any) => !c.parent_id).map((c: any) => createClusterNode(c, tree.clusters, data.areas)),
+          children: tree.clusters
+            .filter((c) => !c.parent_id)
+            .map((c) => createClusterNode(c, tree.clusters, data.areas)),
         })),
       } as TreeNode;
     }
 
-    function showNodeDetails(node: any) {
+    function showNodeDetails(node: TreeNode): void {
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
       modal.style.backdropFilter = 'blur(8px)';
@@ -146,7 +152,7 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
         .enter()
         .append('path')
         .attr('class', 'tree-link')
-        .attr('d', (d: any) => `M${d.x},${d.y}C${d.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${d.parent.y}`);
+        .attr('d', (d: HierarchyPointNode<TreeNode>) => `M${d.x},${d.y}C${d.x},${(d.y + d.parent!.y) / 2} ${d.parent!.x},${(d.y + d.parent!.y) / 2} ${d.parent!.x},${d.parent!.y}`);
 
       const node = g
         .selectAll('.tree-node')
@@ -154,12 +160,12 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
         .enter()
         .append('g')
         .attr('class', 'tree-node')
-        .attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+        .attr('transform', (d: HierarchyPointNode<TreeNode>) => `translate(${d.x},${d.y})`);
 
       node
         .append('circle')
-        .attr('r', (d: any) => (d.data.type === 'tree' ? 12 : d.data.type === 'cluster' ? 8 : 6))
-        .style('fill', (d: any) => {
+        .attr('r', (d: HierarchyPointNode<TreeNode>) => (d.data.type === NodeType.Tree ? 12 : d.data.type === NodeType.Cluster ? 8 : 6))
+        .style('fill', (d: HierarchyPointNode<TreeNode>) => {
           if (d.data.type === 'tree') return 'var(--nf-primary-500)';
           if (d.data.type === 'cluster') return 'var(--nf-accent-cyan)';
           return 'var(--nf-success)';
@@ -169,24 +175,24 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
 
       node
         .append('text')
-        .attr('dy', (d: any) => (d.data.type === 'tree' ? -18 : -12))
+        .attr('dy', (d: HierarchyPointNode<TreeNode>) => (d.data.type === NodeType.Tree ? -18 : -12))
         .attr('text-anchor', 'middle')
         .style('fill', 'var(--nf-gray-200)')
-        .style('font-size', (d: any) => (d.data.type === 'tree' ? '14px' : '12px'))
-        .style('font-weight', (d: any) => (d.data.type === 'tree' ? '600' : '400'))
-        .text((d: any) => d.data.name);
+        .style('font-size', (d: HierarchyPointNode<TreeNode>) => (d.data.type === NodeType.Tree ? '14px' : '12px'))
+        .style('font-weight', (d: HierarchyPointNode<TreeNode>) => (d.data.type === NodeType.Tree ? '600' : '400'))
+        .text((d: HierarchyPointNode<TreeNode>) => d.data.name);
 
       node
-        .filter((d: any) => d.data.status)
+        .filter((d: HierarchyPointNode<TreeNode>) => d.data.status)
         .append('circle')
         .attr('r', 3)
         .attr('cx', 15)
         .attr('cy', -8)
-        .style('fill', (d: any) => (d.data.status === 'active' ? 'var(--nf-success)' : 'var(--nf-error)'))
+        .style('fill', (d: HierarchyPointNode<TreeNode>) => (d.data.status === Status.Active ? 'var(--nf-success)' : 'var(--nf-error)'))
         .style('stroke', 'var(--nf-gray-800)')
         .style('stroke-width', '1px');
 
-      node.on('click', (_e: any, d: any) => {
+      node.on('click', (_e: unknown, d: HierarchyPointNode<TreeNode>) => {
         showNodeDetails(d.data);
       });
     };

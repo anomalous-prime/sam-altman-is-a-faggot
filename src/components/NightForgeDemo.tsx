@@ -1,20 +1,36 @@
 'use client';
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { seedData } from '@/lib/seedData';
+import { Tree, Cluster, Area, TreeNode, FilteredData, Filters } from '@/lib/types';
 
 export default function NightForgeDemo() {
+  const [currentFilters, setCurrentFilters] = useState<Filters>({
+    tree: 'all',
+    status: 'all',
+    type: 'all',
+    search: ''
+  });
+  const [isD3Ready, setIsD3Ready] = useState(false);
+
   useEffect(() => {
     const d3 = (window as any).d3;
+    if (!d3 || !isD3Ready) return;
 
-    let currentFilters = { tree: 'all', status: 'all', type: 'all', search: '' };
-
-    function getAllClusters() {
-      return seedData.trees.reduce((acc, tree) => acc.concat(tree.clusters), [] as any[]);
+    function getAllClusters(): any[] {
+      return seedData.trees.reduce((acc: any[], tree: any) => acc.concat(tree.clusters), [] as any[]);
     }
 
     function populateTreeSelect() {
       const select = document.getElementById('treeSelect') as HTMLSelectElement;
+      if (!select) return;
+      
+      // Clear existing options except the first one
+      while (select.children.length > 1) {
+        select.removeChild(select.lastChild!);
+      }
+
       seedData.trees.forEach((tree) => {
         const option = document.createElement('option');
         option.value = tree.id;
@@ -24,14 +40,21 @@ export default function NightForgeDemo() {
     }
 
     function renderStats() {
+      const filteredData = getFilteredData();
       const activeTags = seedData.tags.filter((t) => t.status === 'active').length;
-      (document.getElementById('statTrees') as HTMLElement).textContent = seedData.trees.length.toString();
-      (document.getElementById('statClusters') as HTMLElement).textContent = getAllClusters().length.toString();
-      (document.getElementById('statAreas') as HTMLElement).textContent = seedData.areas.length.toString();
-      (document.getElementById('statTags') as HTMLElement).textContent = activeTags.toString();
+      
+      const statTrees = document.getElementById('statTrees') as HTMLElement;
+      const statClusters = document.getElementById('statClusters') as HTMLElement;
+      const statAreas = document.getElementById('statAreas') as HTMLElement;
+      const statTags = document.getElementById('statTags') as HTMLElement;
+
+      if (statTrees) statTrees.textContent = filteredData.trees.length.toString();
+      if (statClusters) statClusters.textContent = filteredData.trees.reduce((acc, tree) => acc + tree.clusters.length, 0).toString();
+      if (statAreas) statAreas.textContent = filteredData.areas.length.toString();
+      if (statTags) statTags.textContent = activeTags.toString();
     }
 
-    function createClusterNode(cluster: any, allClusters: any[], areas: any[]) {
+    function createClusterNode(cluster: any, allClusters: any[], areas: any[]): any {
       const childClusters = allClusters.filter((c) => c.parent_id === cluster.uid);
       const clusterAreas = areas.filter((a) => a.cluster_uid === cluster.uid);
       return {
@@ -52,7 +75,7 @@ export default function NightForgeDemo() {
       };
     }
 
-    function getFilteredData() {
+    function getFilteredData(): { trees: any[], areas: any[] } {
       let filteredTrees = JSON.parse(JSON.stringify(seedData.trees));
       let filteredAreas = JSON.parse(JSON.stringify(seedData.areas));
 
@@ -111,6 +134,8 @@ export default function NightForgeDemo() {
 
     function renderTreeVisualization() {
       const container = document.getElementById('treeViz') as HTMLElement;
+      if (!container) return;
+      
       container.innerHTML = '';
       const width = container.clientWidth;
       const height = 600;
@@ -120,6 +145,7 @@ export default function NightForgeDemo() {
       const tree = d3.tree().size([width - 100, height - 100]);
       const root = d3.hierarchy(data);
       tree(root);
+      
       g.selectAll('.tree-link')
         .data(root.descendants().slice(1))
         .enter()
@@ -172,48 +198,66 @@ export default function NightForgeDemo() {
 
     function renderTagCloud() {
       const container = document.getElementById('tagCloud') as HTMLElement;
+      if (!container) return;
+      
       container.innerHTML = '';
       const filtered = getFilteredData();
       const tagCounts: Record<string, number> = {};
+      
       filtered.areas.forEach((area: any) => {
         area.tags.forEach((tag: string) => {
           tagCounts[tag] = (tagCounts[tag] || 0) + 1;
         });
       });
+      
       filtered.trees.forEach((tree: any) => {
         tree.clusters.forEach((cluster: any) => {
           tagCounts[cluster.name] = (tagCounts[cluster.name] || 0) + 2;
         });
       });
+      
       filtered.areas.forEach((area: any) => {
         tagCounts[area.name] = (tagCounts[area.name] || 0) + 1;
       });
+      
       const sorted = Object.entries(tagCounts)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 50);
-      sorted.forEach(([tag]) => {
+        
+      sorted.forEach(([tag, count]) => {
         const badge = document.createElement('span');
         badge.className = 'tag-badge';
-        badge.textContent = tag;
+        badge.textContent = `${tag} (${count})`;
+        
         const isCluster = filtered.trees.some((t: any) => t.clusters.some((c: any) => c.name === tag));
         const isArea = filtered.areas.some((a: any) => a.name === tag);
-        if (isCluster) badge.classList.add('tag-cluster');
-        else if (isArea) badge.classList.add('tag-area');
-        else badge.classList.add('tag-status-active');
+        
+        if (isCluster) {
+          badge.classList.add('tag-cluster');
+        } else if (isArea) {
+          badge.classList.add('tag-area');
+        } else {
+          badge.classList.add('tag-status-active');
+        }
+        
         badge.addEventListener('click', () => {
-          currentFilters.search = tag;
+          const newFilters = { ...currentFilters, search: tag };
+          setCurrentFilters(newFilters);
           const input = document.getElementById('searchInput') as HTMLInputElement;
-          input.value = tag;
-          updateDisplay();
+          if (input) input.value = tag;
         });
+        
         container.appendChild(badge);
       });
     }
 
     function renderDataInspector() {
       const container = document.getElementById('dataInspector') as HTMLElement;
+      if (!container) return;
+      
       container.innerHTML = '';
       const filtered = getFilteredData();
+      
       filtered.trees.forEach((tree: any) => {
         const card = document.createElement('div');
         card.className = 'nf-card rounded-lg p-4 mb-4';
@@ -260,8 +304,10 @@ export default function NightForgeDemo() {
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
       modal.style.backdropFilter = 'blur(8px)';
+      
       const content = document.createElement('div');
       content.className = 'nf-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto';
+      
       let details = '';
       if (data.type === 'tree') {
         const tree = seedData.trees.find((t) => t.id === data.id)!;
@@ -321,9 +367,11 @@ export default function NightForgeDemo() {
             </div>
           </div>`;
       }
+      
       content.innerHTML = `${details}<div class="mt-6 flex justify-end"><button class="nf-btn-primary px-4 py-2 rounded-lg" onclick="this.closest('.fixed').remove()">Close</button></div>`;
       modal.appendChild(content);
       document.body.appendChild(modal);
+      
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
       });
@@ -337,36 +385,64 @@ export default function NightForgeDemo() {
     }
 
     function setupEventListeners() {
-      document.getElementById('treeSelect')?.addEventListener('change', (e) => {
-        currentFilters.tree = (e.target as HTMLSelectElement).value;
-        updateDisplay();
-      });
-      document.getElementById('filterActive')?.addEventListener('click', (e) => {
-        currentFilters.status = currentFilters.status === 'active' ? 'all' : 'active';
-        (e.target as HTMLElement).classList.toggle('filter-active');
-        updateDisplay();
-      });
-      document.getElementById('filterClusters')?.addEventListener('click', (e) => {
-        currentFilters.type = currentFilters.type === 'clusters' ? 'all' : 'clusters';
-        (e.target as HTMLElement).classList.toggle('filter-active');
-        updateDisplay();
-      });
-      document.getElementById('filterAreas')?.addEventListener('click', (e) => {
-        currentFilters.type = currentFilters.type === 'areas' ? 'all' : 'areas';
-        (e.target as HTMLElement).classList.toggle('filter-active');
-        updateDisplay();
-      });
-      document.getElementById('resetFilters')?.addEventListener('click', () => {
-        currentFilters = { tree: 'all', status: 'all', type: 'all', search: '' };
-        (document.getElementById('treeSelect') as HTMLSelectElement).value = 'all';
-        (document.getElementById('searchInput') as HTMLInputElement).value = '';
-        document.querySelectorAll('.filter-active').forEach((btn) => btn.classList.remove('filter-active'));
-        updateDisplay();
-      });
-      document.getElementById('searchInput')?.addEventListener('input', (e) => {
-        currentFilters.search = (e.target as HTMLInputElement).value;
-        updateDisplay();
-      });
+      const treeSelect = document.getElementById('treeSelect') as HTMLSelectElement;
+      const filterActive = document.getElementById('filterActive') as HTMLButtonElement;
+      const filterClusters = document.getElementById('filterClusters') as HTMLButtonElement;
+      const filterAreas = document.getElementById('filterAreas') as HTMLButtonElement;
+      const resetFilters = document.getElementById('resetFilters') as HTMLButtonElement;
+      const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+
+      if (treeSelect) {
+        treeSelect.addEventListener('change', (e) => {
+          const newFilters = { ...currentFilters, tree: (e.target as HTMLSelectElement).value };
+          setCurrentFilters(newFilters);
+        });
+      }
+
+      if (filterActive) {
+        filterActive.addEventListener('click', (e) => {
+          const newStatus = currentFilters.status === 'active' ? 'all' : 'active';
+          const newFilters = { ...currentFilters, status: newStatus };
+          setCurrentFilters(newFilters);
+          (e.target as HTMLElement).classList.toggle('filter-active');
+        });
+      }
+
+      if (filterClusters) {
+        filterClusters.addEventListener('click', (e) => {
+          const newType = currentFilters.type === 'clusters' ? 'all' : 'clusters';
+          const newFilters = { ...currentFilters, type: newType };
+          setCurrentFilters(newFilters);
+          (e.target as HTMLElement).classList.toggle('filter-active');
+        });
+      }
+
+      if (filterAreas) {
+        filterAreas.addEventListener('click', (e) => {
+          const newType = currentFilters.type === 'areas' ? 'all' : 'areas';
+          const newFilters = { ...currentFilters, type: newType };
+          setCurrentFilters(newFilters);
+          (e.target as HTMLElement).classList.toggle('filter-active');
+        });
+      }
+
+      if (resetFilters) {
+        resetFilters.addEventListener('click', () => {
+          const newFilters = { tree: 'all', status: 'all', type: 'all', search: '' };
+          setCurrentFilters(newFilters);
+          if (treeSelect) treeSelect.value = 'all';
+          if (searchInput) searchInput.value = '';
+          document.querySelectorAll('.filter-active').forEach((btn) => btn.classList.remove('filter-active'));
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const newFilters = { ...currentFilters, search: (e.target as HTMLInputElement).value };
+          setCurrentFilters(newFilters);
+        });
+      }
+
       window.addEventListener('resize', () => {
         setTimeout(renderTreeVisualization, 100);
       });
@@ -378,67 +454,117 @@ export default function NightForgeDemo() {
       updateDisplay();
     }
 
-    if (d3) init();
-  }, []);
+    init();
+  }, [currentFilters, isD3Ready]);
+
+  const handleD3Load = () => {
+    setIsD3Ready(true);
+  };
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-7xl">
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" strategy="afterInteractive" />
-      <header className="mb-8">
-        <h1 className="font-display text-4xl font-semibold mb-2" style={{ color: 'var(--nf-primary-300)' }}>
-          🌑 NightForge Tree API
-        </h1>
-        <p className="text-lg" style={{ color: 'var(--nf-gray-400)' }}>
-          Interactive demonstration of tree-structured data management
-        </p>
-      </header>
-      <div className="nf-card rounded-lg p-6 mb-8">
-        <h2 className="font-display text-xl font-semibold mb-4">Controls & Filters</h2>
-        <div className="flex flex-wrap gap-4 mb-4">
-          <select id="treeSelect" className="px-4 py-2 rounded-lg border" style={{ background: 'var(--nf-gray-700)', borderColor: 'var(--nf-gray-600)', color: 'var(--nf-gray-200)' }}>
-            <option value="all">All Trees</option>
-          </select>
-          <button id="filterActive" className="nf-btn-secondary px-4 py-2 rounded-lg">Active Only</button>
-          <button id="filterClusters" className="nf-btn-secondary px-4 py-2 rounded-lg">Clusters</button>
-          <button id="filterAreas" className="nf-btn-secondary px-4 py-2 rounded-lg">Areas</button>
-          <button id="resetFilters" className="nf-btn-primary px-4 py-2 rounded-lg">Reset Filters</button>
-        </div>
-        <div className="flex items-center gap-4">
-          <input id="searchInput" type="text" placeholder="Search tags, clusters, areas..." className="px-4 py-2 rounded-lg border flex-1" style={{ background: 'var(--nf-gray-700)', borderColor: 'var(--nf-gray-600)', color: 'var(--nf-gray-200)' }} />
-          <button id="expandAll" className="nf-btn-secondary px-4 py-2 rounded-lg">Expand All</button>
-          <button id="collapseAll" className="nf-btn-secondary px-4 py-2 rounded-lg">Collapse All</button>
+    <>
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" 
+        strategy="afterInteractive" 
+        onLoad={handleD3Load}
+      />
+      <div className="min-h-screen">
+        <div className="container mx-auto px-6 py-8 max-w-7xl">
+          {/* Header */}
+          <header className="mb-8">
+            <h1 className="font-display text-4xl font-semibold mb-2" style={{ color: 'var(--nf-primary-300)' }}>
+              🌑 NightForge Tree API
+            </h1>
+            <p className="text-lg" style={{ color: 'var(--nf-gray-400)' }}>
+              Interactive demonstration of tree-structured data management
+            </p>
+          </header>
+
+          {/* Controls Panel */}
+          <div className="nf-card rounded-lg p-6 mb-8">
+            <h2 className="font-display text-xl font-semibold mb-4">Controls & Filters</h2>
+            <div className="flex flex-wrap gap-4 mb-4">
+              <select 
+                id="treeSelect" 
+                className="px-4 py-2 rounded-lg border" 
+                style={{ background: 'var(--nf-gray-700)', borderColor: 'var(--nf-gray-600)', color: 'var(--nf-gray-200)' }}
+              >
+                <option value="all">All Trees</option>
+              </select>
+              
+              <button id="filterActive" className="nf-btn-secondary px-4 py-2 rounded-lg">
+                Active Only
+              </button>
+              
+              <button id="filterClusters" className="nf-btn-secondary px-4 py-2 rounded-lg">
+                Clusters
+              </button>
+              
+              <button id="filterAreas" className="nf-btn-secondary px-4 py-2 rounded-lg">
+                Areas
+              </button>
+              
+              <button id="resetFilters" className="nf-btn-primary px-4 py-2 rounded-lg">
+                Reset Filters
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search tags, clusters, areas..." 
+                className="px-4 py-2 rounded-lg border flex-1" 
+                style={{ background: 'var(--nf-gray-700)', borderColor: 'var(--nf-gray-600)', color: 'var(--nf-gray-200)' }} 
+              />
+              <button id="expandAll" className="nf-btn-secondary px-4 py-2 rounded-lg">
+                Expand All
+              </button>
+              <button id="collapseAll" className="nf-btn-secondary px-4 py-2 rounded-lg">
+                Collapse All
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Dashboard */}
+          <div className="stats-grid mb-8">
+            <div className="nf-card rounded-lg p-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Total Trees</h3>
+              <div className="text-3xl font-bold" style={{ color: 'var(--nf-primary-300)' }} id="statTrees">3</div>
+            </div>
+            <div className="nf-card rounded-lg p-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Total Clusters</h3>
+              <div className="text-3xl font-bold" style={{ color: 'var(--nf-accent-cyan)' }} id="statClusters">8</div>
+            </div>
+            <div className="nf-card rounded-lg p-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Total Areas</h3>
+              <div className="text-3xl font-bold" style={{ color: 'var(--nf-success)' }} id="statAreas">30</div>
+            </div>
+            <div className="nf-card rounded-lg p-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Active Tags</h3>
+              <div className="text-3xl font-bold" style={{ color: 'var(--nf-warning)' }} id="statTags">45</div>
+            </div>
+          </div>
+
+          {/* Tree Visualization */}
+          <div className="nf-card rounded-lg p-6 mb-8">
+            <h2 className="font-display text-xl font-semibold mb-4">Tree Structure Visualization</h2>
+            <div id="treeViz" className="w-full" style={{ minHeight: '600px' }}></div>
+          </div>
+
+          {/* Tag Cloud */}
+          <div className="nf-card rounded-lg p-6 mb-8">
+            <h2 className="font-display text-xl font-semibold mb-4">Tag Cloud</h2>
+            <div id="tagCloud" className="flex flex-wrap gap-2"></div>
+          </div>
+
+          {/* Detailed Data View */}
+          <div className="nf-card rounded-lg p-6">
+            <h2 className="font-display text-xl font-semibold mb-4">Data Inspector</h2>
+            <div id="dataInspector" className="space-y-4"></div>
+          </div>
         </div>
       </div>
-      <div className="stats-grid mb-8">
-        <div className="nf-card rounded-lg p-6">
-          <h3 className="font-display text-lg font-semibold mb-2">Total Trees</h3>
-          <div className="text-3xl font-bold" style={{ color: 'var(--nf-primary-300)' }} id="statTrees">3</div>
-        </div>
-        <div className="nf-card rounded-lg p-6">
-          <h3 className="font-display text-lg font-semibold mb-2">Total Clusters</h3>
-          <div className="text-3xl font-bold" style={{ color: 'var(--nf-accent-cyan)' }} id="statClusters">8</div>
-        </div>
-        <div className="nf-card rounded-lg p-6">
-          <h3 className="font-display text-lg font-semibold mb-2">Total Areas</h3>
-          <div className="text-3xl font-bold" style={{ color: 'var(--nf-success)' }} id="statAreas">30</div>
-        </div>
-        <div className="nf-card rounded-lg p-6">
-          <h3 className="font-display text-lg font-semibold mb-2">Active Tags</h3>
-          <div className="text-3xl font-bold" style={{ color: 'var(--nf-warning)' }} id="statTags">45</div>
-        </div>
-      </div>
-      <div className="nf-card rounded-lg p-6 mb-8">
-        <h2 className="font-display text-xl font-semibold mb-4">Tree Structure Visualization</h2>
-        <div id="treeViz" className="w-full" style={{ minHeight: '600px' }}></div>
-      </div>
-      <div className="nf-card rounded-lg p-6 mb-8">
-        <h2 className="font-display text-xl font-semibold mb-4">Tag Cloud</h2>
-        <div id="tagCloud" className="flex flex-wrap gap-2"></div>
-      </div>
-      <div className="nf-card rounded-lg p-6">
-        <h2 className="font-display text-xl font-semibold mb-4">Data Inspector</h2>
-        <div id="dataInspector" className="space-y-4"></div>
-      </div>
-    </div>
+    </>
   );
 }

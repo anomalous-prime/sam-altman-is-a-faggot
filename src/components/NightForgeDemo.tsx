@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Script from 'next/script';
-import { Filters, FilteredData } from '@/lib/types';
-import { seedData } from '@/lib/seedData';
+import useFilters from '@/hooks/useFilters';
 import ControlsPanel from './ControlsPanel';
 import StatsDashboard from './StatsDashboard';
 import TreeVisualization from './TreeVisualization';
@@ -11,58 +10,18 @@ import TagCloud from './TagCloud';
 import DataInspector from './DataInspector';
 
 export default function NightForgeDemo() {
-  const [filters, setFilters] = useState<Filters>({
-    tree: 'all',
-    status: 'all',
-    type: 'all',
-    search: '',
-  });
+  const {
+    filters,
+    filteredData,
+    setTree,
+    toggleStatus,
+    toggleClusters,
+    toggleAreas,
+    setSearch,
+    resetFilters,
+    setFilters,
+  } = useFilters();
   const [isD3Ready, setIsD3Ready] = useState(false);
-
-  const filteredData: FilteredData = useMemo(() => {
-    let filteredTrees: any[] = JSON.parse(JSON.stringify(seedData.trees));
-    let filteredAreas: any[] = JSON.parse(JSON.stringify(seedData.areas));
-
-    if (filters.tree !== 'all') {
-      filteredTrees = filteredTrees.filter((t) => t.id === filters.tree);
-      const ids = filteredTrees.reduce((acc: any[], t: any) => acc.concat(t.clusters.map((c: any) => c.uid)), []);
-      filteredAreas = filteredAreas.filter((a: any) => ids.includes(a.cluster_uid));
-    }
-
-    if (filters.status === 'active') {
-      filteredTrees = filteredTrees.filter((t) => t.status === 'active');
-      filteredAreas = filteredAreas.filter((a) => a.status === 'active');
-      filteredTrees.forEach((t) => {
-        t.clusters = t.clusters.filter((c: any) => c.status === 'active');
-      });
-    }
-
-    if (filters.type === 'clusters') {
-      filteredAreas = [];
-    } else if (filters.type === 'areas') {
-      filteredTrees.forEach((t) => {
-        t.clusters = t.clusters.filter((c: any) => filteredAreas.some((a: any) => a.cluster_uid === c.uid));
-      });
-    }
-
-    if (filters.search) {
-      const term = filters.search.toLowerCase();
-      filteredAreas = filteredAreas.filter(
-        (a: any) =>
-          a.name.toLowerCase().includes(term) || a.tags.some((tag: string) => tag.toLowerCase().includes(term)),
-      );
-      filteredTrees.forEach((t) => {
-        t.clusters = t.clusters.filter(
-          (c: any) => c.name.toLowerCase().includes(term) || filteredAreas.some((a: any) => a.cluster_uid === c.uid),
-        );
-      });
-      filteredTrees = filteredTrees.filter(
-        (t: any) => t.name.toLowerCase().includes(term) || t.clusters.length > 0,
-      );
-    }
-
-    return { trees: filteredTrees, areas: filteredAreas } as FilteredData;
-  }, [filters]);
 
   const handleD3Load = () => {
     setIsD3Ready(true);

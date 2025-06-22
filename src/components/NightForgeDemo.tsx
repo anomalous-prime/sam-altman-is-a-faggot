@@ -17,7 +17,6 @@ export default function NightForgeDemo() {
     type: 'all',
     search: '',
   });
-  const [isD3Ready, setIsD3Ready] = useState(false);
 
   const filteredData: FilteredData = useMemo(() => {
     let filteredTrees: any[] = JSON.parse(JSON.stringify(seedData.trees));
@@ -64,16 +63,11 @@ export default function NightForgeDemo() {
     return { trees: filteredTrees, areas: filteredAreas } as FilteredData;
   }, [filters]);
 
-  const handleD3Load = () => {
-    setIsD3Ready(true);
-  };
-
   return (
     <>
       <Script
         src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"
         strategy="afterInteractive"
-        onLoad={handleD3Load}
       />
       <div className="min-h-screen">
         <div className="container mx-auto px-6 py-8 max-w-7xl">
@@ -88,7 +82,7 @@ export default function NightForgeDemo() {
 
           <ControlsPanel filters={filters} setFilters={setFilters} />
           <StatsDashboard data={filteredData} />
-          <TreeVisualization data={filteredData} isD3Ready={isD3Ready} />
+          <TreeVisualization data={filteredData} />
           <TagCloud data={filteredData} filters={filters} setFilters={setFilters} />
           <DataInspector data={filteredData} />
         </div>

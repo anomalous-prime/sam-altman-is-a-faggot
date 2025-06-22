@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { FilteredData, TreeNode } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 
 interface Props {
   data: FilteredData;
-  isD3Ready: boolean;
 }
 
-export default function TreeVisualization({ data, isD3Ready }: Props) {
+export default function TreeVisualization({ data }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (!isD3Ready) return;
     const d3 = (window as any).d3;
     if (!d3) return;
 
@@ -128,11 +128,11 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
       });
     }
 
-    const container = document.getElementById('treeViz') as HTMLElement;
+    const container = containerRef.current;
     if (!container) return;
 
     const render = () => {
-      container.innerHTML = '';
+      d3.select(container).selectAll('*').remove();
       const width = container.clientWidth;
       const height = 600;
       const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
@@ -195,13 +195,18 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
     window.addEventListener('resize', render);
     return () => {
       window.removeEventListener('resize', render);
+      d3.select(container).selectAll('*').remove();
     };
-  }, [data, isD3Ready]);
+  }, [data]);
 
   return (
     <div className="nf-card rounded-lg p-6 mb-8">
       <h2 className="font-display text-xl font-semibold mb-4">Tree Structure Visualization</h2>
-      <div id="treeViz" className="w-full" style={{ minHeight: '600px' }}></div>
+      <div
+        ref={containerRef}
+        className="w-full"
+        style={{ minHeight: '600px' }}
+      ></div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { seedData } from '@/lib/seedData';
 
 export default function NightForgeDemo() {
   useEffect(() => {
-    const d3 = (window as any).d3;
+    let d3 = (window as any).d3;
 
     let currentFilters = { tree: 'all', status: 'all', type: 'all', search: '' };
 
@@ -378,12 +378,25 @@ export default function NightForgeDemo() {
       updateDisplay();
     }
 
-    if (d3) init();
+    if (d3) {
+      init();
+    } else {
+      const script = document.getElementById('d3-script');
+      const onLoad = () => {
+        script?.removeEventListener('load', onLoad);
+        d3 = (window as any).d3;
+        init();
+      };
+      script?.addEventListener('load', onLoad);
+      return () => {
+        script?.removeEventListener('load', onLoad);
+      };
+    }
   }, []);
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" strategy="afterInteractive" />
+      <Script id="d3-script" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" strategy="afterInteractive" />
       <header className="mb-8">
         <h1 className="font-display text-4xl font-semibold mb-2" style={{ color: 'var(--nf-primary-300)' }}>
           🌑 NightForge Tree API

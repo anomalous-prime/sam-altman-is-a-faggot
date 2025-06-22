@@ -25,6 +25,8 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 :root {
+            --nf-gray-900: #0D0F16;
+            --nf-gray-800: #151823;
             --nf-gray-700: #1F2330;
             --nf-gray-600: #2A3042;
             --nf-gray-400: #6B7287;

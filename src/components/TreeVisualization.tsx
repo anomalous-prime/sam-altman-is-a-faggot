@@ -5,9 +5,10 @@ import { seedData } from "@/lib/seedData";
 interface Props {
   data: FilteredData;
   isD3Ready: boolean;
+  onNodeSelect?: (node: any) => void;
 }
 
-export default function TreeVisualization({ data, isD3Ready }: Props) {
+export default function TreeVisualization({ data, isD3Ready, onNodeSelect }: Props) {
   useEffect(() => {
     if (!isD3Ready) return;
     const d3 = (window as any).d3;
@@ -255,6 +256,9 @@ export default function TreeVisualization({ data, isD3Ready }: Props) {
 
       node.on("click", (_e: any, d: any) => {
         showNodeDetails(d.data);
+        if (onNodeSelect) {
+          onNodeSelect(d.data);
+        }
       });
     };
 

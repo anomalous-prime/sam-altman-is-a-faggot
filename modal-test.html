@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 20px; background: #0f172a; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Modal Behavior Test</h1>
+    <button onclick="openModal()" class="bg-blue-600 px-4 py-2 rounded">Open Modal</button>
+    
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-[9999] overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm hidden">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="relative inline-block align-bottom bg-slate-800 rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-600">
+                <div class="bg-slate-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-white">Test Modal</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700">
+                            ✕
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-slate-300">This is a test modal. Click inside this area - the modal should NOT close.</p>
+                        <p class="text-slate-300">Click outside this modal box (on the dark backdrop) to close it.</p>
+                        <p class="text-slate-300">Or press the Escape key to close it.</p>
+                        <input type="text" placeholder="Test input" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white">
+                        <button onclick="alert('Button clicked!')" class="bg-green-600 px-4 py-2 rounded text-white">Test Button</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('modal');
+        
+        function openModal() {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'unset';
+        }
+        
+        // Click outside to close
+        modal.addEventListener('click', function(e) {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+        
+        // Stop propagation for modal content
+        modal.querySelector('.relative').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Escape key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
